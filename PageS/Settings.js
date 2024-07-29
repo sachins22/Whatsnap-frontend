@@ -16,12 +16,9 @@ const Bio = [{
 
 export default function Settings() {
   const navigation = useNavigation();
-  const [status, requestPermission] = ImagePicker.useCameraPermissions();
+
   
-  if (status != "granted") {
-    requestPermission()
-  }
-  // const [image, setImage] = React.useState(null);
+
   function Goback() {
     navigation.goBack();
   }

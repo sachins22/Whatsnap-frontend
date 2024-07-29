@@ -3,10 +3,62 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign, Feather, Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from 'expo-media-library';
+
+
+
 
 export default function Profile({ route }) {
+  const [images, setImages] = React.useState([]);
+  const [modalVisible1, setModalVisible1] = useState(false);
+  const [CPstatus, requestCPPermission] = ImagePicker.useCameraPermissions();
+  const [status, requestPermission] = ImagePicker.useMediaLibraryPermissions();
   const navigation = useNavigation();
   const { item } = route.params;
+
+  const toggleModalVisibility1 = () => {
+    setModalVisible1(!modalVisible1);
+  };
+
+  const cameraAttach = async () => {
+    if (CPstatus.status !== "granted") {
+      const permission = await requestCPPermission();
+      if (!permission.granted) return;
+    }
+
+    let capImg = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [25, 25],
+      quality: 1,
+    });
+
+    setImages(capImg.assets)
+   
+    const asset = await MediaLibrary.createAssetAsync(capImg.assets[0].uri);
+    const album = await MediaLibrary.getAlbumAsync('WSnap');
+    if (!album) {
+      album = await MediaLibrary.createAlbumAsync('WSnap', asset, false);
+    } else {
+      await MediaLibrary.addAssetsToAlbumAsync(album, [asset]);
+}
+  };
+
+  const imgPicker = async () => {
+    if (status.status !== "granted") {
+      const permission = await requestPermission();
+      if (!permission.granted) return;
+    }
+
+    const IMP = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [25, 25],
+      quality: 1,
+    });
+
+    setImages(IMP.assets)
+ 
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -18,9 +70,15 @@ export default function Profile({ route }) {
           <Text style={styles.headerText}>Profile</Text>
         </View>
         <View style={styles.firstImgContainer}>
-          <Image source={item.profile} style={styles.firstImg} />
+          <FlatList
+            data={images}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <Image source={{ uri: item.uri }} style={styles.firstImg}></Image>
+            )}
+          />
           <View style={styles.firstImgIcon}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={toggleModalVisibility1}>
               <Feather name="camera" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -47,6 +105,25 @@ export default function Profile({ route }) {
           </View>
         </View>
       </View>
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible1}
+          onRequestClose={toggleModalVisibility1}
+        >
+          <View style={styles.centeredView1}>
+            <View style={styles.modalView1}>
+              <TouchableOpacity style={styles.Modal1Camera} onPress={cameraAttach}>
+                <AntDesign name="camera" size={24} color="black" />
+                <Text style={styles.Modal1Text}>Take Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.Modal1Photo} onPress={imgPicker}>
+                <Entypo name="images" size={24} color="black" />
+                <Text style={styles.Modal1Text}>Choose image</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
     </SafeAreaView>
   );
 }
@@ -105,4 +182,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 8,
   },
+  centeredView1: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView1: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  Modal1Camera:{
+    flexDirection:"row",
+    marginVertical:20,
+
+  },
+  Modal1Photo:{
+    flexDirection:"row",
+    marginVertical:20,
+
+  },
+  Modal1Text:{
+    marginHorizontal:15
+  }
 });

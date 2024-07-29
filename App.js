@@ -6,6 +6,8 @@ import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-ico
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {  GestureHandlerRootView } from 'react-native-gesture-handler';
 
+
+
 import Login from './Log/Login';
 import Otp from './Log/OTP';
 import Name from './Log/Name';
@@ -35,6 +37,7 @@ const Tab = createBottomTabNavigator();
 export default function App() {
 
   // let loggedIn= false;
+
 
 
   const [loggedIn, setloggedIn] = React.useState(false)

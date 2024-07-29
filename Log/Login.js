@@ -4,25 +4,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Authcontext from '../utils/Authcontext';
 import ima1 from '../assets/back.png';
 import axios from 'axios';
-
+import { auth } from "../Server/firebaseConfig.js";
 
 export default function Login({ navigation }) {
-const { Back_uri } = React.useContext(Authcontext);
+  const { Back_uri } = React.useContext(Authcontext);
 
-const [number, setnumber]= useState('')
+  const [number, setNumber] = useState('');
+  const [verificationId, setVerificationId] = useState(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [confirm, setConfirm] = useState(null);
 
-
-
-  const Number = async () => {
+  const sendOTP = async () => {
     try {
-      await axios.post(`${Back_uri}/registerNo`, { number });
-     
+      const confirmation = await auth().signInWithPhoneNumber(number);
+      setConfirm(confirmation);
     } catch (error) {
       console.error(error);
     }
   };
 
+  const verifyOTP = async () => {
+    try {
+      await confirm.confirm(verificationCode);
+      console.log('Phone number authenticated successfully');
+    } catch (error) {
+      console.error('Invalid code.');
+    }
+  };
 
+  const registerNumber = async () => {
+    try {
+      await axios.post(`${Back_uri}/registerNo`, { number });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,19 +50,21 @@ const [number, setnumber]= useState('')
           <TextInput
             style={styles.input}
             value={number}
-            onChangeText={setnumber}
-            placeholder="mobile Number"
+            onChangeText={setNumber}
+            placeholder="Mobile Number"
             keyboardType="phone-pad"
             returnKeyType='send'
             placeholderTextColor="#FFFFFF"
-                      />
+          />
         </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>{ 
-              Number();
-              navigation.navigate('Otp')}}
+            onPress={() => {
+              registerNumber();
+              sendOTP();
+              navigation.navigate('Otp');
+            }}
           >
             <Text style={styles.buttonText}>Get OTP</Text>
           </TouchableOpacity>
@@ -86,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     position: 'absolute',
-    bottom: 120, 
+    bottom: 120,
   },
   input: {
     fontSize: 18,
@@ -94,7 +112,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 60, 
+    bottom: 60,
     width: '50%',
     alignItems: 'center',
   },
